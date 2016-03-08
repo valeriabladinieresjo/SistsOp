@@ -6,12 +6,13 @@ import javax.swing.*;
 import java.awt.*;
 import sun.audio.*;
 import java.awt.event.*;
-
+import java.util.ArrayList;
 
 
 public class SimpleChatClient
 {
     JTextArea incoming;
+    JTextArea nombresclientes;
     JTextField outgoing;
     BufferedReader reader;
     PrintWriter writer;
@@ -20,6 +21,7 @@ public class SimpleChatClient
     boolean imp=true;
     String nick;
     JFrame frame = new JFrame("Ludicrously Simple Chat Client");
+    ArrayList<String> nombresarray = new ArrayList<String>();
 
     public void go()
     {     
@@ -28,18 +30,26 @@ public class SimpleChatClient
         incoming.setLineWrap(true);
         incoming.setWrapStyleWord(true);
         incoming.setEditable(false);
+        nombresclientes = new JTextArea(5,15);
+        nombresclientes.setLineWrap(true);
+        nombresclientes.setWrapStyleWord(true);
+        nombresclientes.setEditable(false);
         JScrollPane qScroller = new JScrollPane(incoming);
         qScroller.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
         qScroller.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
         outgoing = new JTextField(20);
         JButton sendButton = new JButton("Send");
         JButton sendButton2 = new JButton("Borrar");
+        JButton sendButton3 = new JButton("Desconectar");
+        sendButton3.addActionListener(new SendButtonListener3());
         sendButton2.addActionListener(new SendButtonListener2());
         sendButton.addActionListener(new SendButtonListener());
         mainPanel.add(qScroller);
         mainPanel.add(outgoing);
         mainPanel.add(sendButton);
         mainPanel.add(sendButton2);
+        mainPanel.add(sendButton3);
+        mainPanel.add(nombresclientes);
         frame.getContentPane().add(BorderLayout.CENTER, mainPanel);
         setUpNetworking();
 
@@ -55,11 +65,15 @@ public class SimpleChatClient
     {
         try {
             nick = JOptionPane.showInputDialog("Nickname");  
-            sock = new Socket("140.148.242.200", 5000);
+            sock = new Socket("140.148.140.9", 5000);
             InputStreamReader streamReader = new InputStreamReader(sock.getInputStream());
             reader = new BufferedReader(streamReader);
             writer = new PrintWriter(sock.getOutputStream());
             System.out.println("networking established");
+            nombresarray.add(nick);
+            for(String nom : nombresarray){
+                nombresclientes.append(nom + "\n");
+            }
         }
         catch(IOException ex)
         {
@@ -104,6 +118,31 @@ public class SimpleChatClient
         }
     }
 
+    public class SendButtonListener3 implements ActionListener
+    {
+        public void actionPerformed(ActionEvent ev) {
+            try {
+                for ( int ini = 0;  ini < nombresarray.size(); ini++){
+                    String tempName = nombresarray.get(ini);
+                    if(tempName.equals(nick)){
+                    nombresarray.remove(ini);
+                    }
+                }
+                nombresclientes.setText("");
+                for(String nom : nombresarray){
+                    nombresclientes.append(nom + "\n");
+                }
+                //System.exit(0);
+            }
+            
+            catch (Exception ex) {
+                ex.printStackTrace();
+            }  
+        }                   
+        
+    }
+
+
     public static void main(String[] args)
     {
         new SimpleChatClient().go();
@@ -121,6 +160,7 @@ public class SimpleChatClient
                     System.out.println("client read " + message);
                     //if(imp){
                         incoming.append(message + "\n");
+                        
                     //}
                     //imp=true;
                 }
