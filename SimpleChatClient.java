@@ -4,7 +4,9 @@ import java.io.*;
 import java.net.*;
 import javax.swing.*;
 import java.awt.*;
+import sun.audio.*;
 import java.awt.event.*;
+
 
 
 public class SimpleChatClient
@@ -14,10 +16,13 @@ public class SimpleChatClient
     BufferedReader reader;
     PrintWriter writer;
     Socket sock;
+    InetAddress ip;
+    boolean imp=true;
+    String nick;
+    JFrame frame = new JFrame("Ludicrously Simple Chat Client");
 
     public void go()
-    {
-        JFrame frame = new JFrame("Ludicrously Simple Chat Client");
+    {     
         JPanel mainPanel = new JPanel();
         incoming = new JTextArea(15, 50);
         incoming.setLineWrap(true);
@@ -28,10 +33,13 @@ public class SimpleChatClient
         qScroller.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
         outgoing = new JTextField(20);
         JButton sendButton = new JButton("Send");
+        JButton sendButton2 = new JButton("Borrar");
+        sendButton2.addActionListener(new SendButtonListener2());
         sendButton.addActionListener(new SendButtonListener());
         mainPanel.add(qScroller);
         mainPanel.add(outgoing);
         mainPanel.add(sendButton);
+        mainPanel.add(sendButton2);
         frame.getContentPane().add(BorderLayout.CENTER, mainPanel);
         setUpNetworking();
 
@@ -46,6 +54,7 @@ public class SimpleChatClient
     private void setUpNetworking()
     {
         try {
+            nick = JOptionPane.showInputDialog("Nickname");  
             sock = new Socket("140.148.242.200", 5000);
             InputStreamReader streamReader = new InputStreamReader(sock.getInputStream());
             reader = new BufferedReader(streamReader);
@@ -62,15 +71,36 @@ public class SimpleChatClient
     {
         public void actionPerformed(ActionEvent ev) {
             try {
-                writer.println(outgoing.getText());
+                /*ip = InetAddress.getLocalHost();
+                NetworkInterface network = NetworkInterface.getByInetAddress(ip);
+                byte[] mac = network.getHardwareAddress();
+                StringBuilder sb = new StringBuilder();
+                for (int i = 0; i < mac.length; i++) {
+                    sb.append(String.format("%02X%s", mac[i], (i < mac.length - 1) ? "-" : ""));        
+                }
+                if("78-CA-39-B8-8E-3A".equals(sb.toString())){
+                    imp= false;
+                }*/
+                writer.println(nick + ": " + outgoing.getText());
                 writer.flush();
-
             }
             catch (Exception ex) {
                 ex.printStackTrace();
             }
             outgoing.setText("");
             outgoing.requestFocus();
+        }
+    }
+
+    public class SendButtonListener2 implements ActionListener
+    {
+        public void actionPerformed(ActionEvent ev) {
+            try {
+               incoming.setText(null);
+            }
+            catch (Exception ex) {
+                ex.printStackTrace();
+            }                     
         }
     }
 
@@ -89,9 +119,13 @@ public class SimpleChatClient
                 {
                     Toolkit.getDefaultToolkit().beep();
                     System.out.println("client read " + message);
-                    incoming.append(message + "\n");
+                    //if(imp){
+                        incoming.append(message + "\n");
+                    //}
+                    //imp=true;
                 }
-            } catch (IOException ex)
+            } 
+            catch (IOException ex)
             {
                 ex.printStackTrace();
             }
