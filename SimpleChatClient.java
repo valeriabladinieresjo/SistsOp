@@ -22,10 +22,14 @@ public class SimpleChatClient
     String nick;
     JFrame frame = new JFrame("Ludicrously Simple Chat Client");
     ArrayList<String> nombresarray = new ArrayList<String>();
-
+    JButton sendButton4 = new JButton("Startup");
+    JButton sendButton = new JButton("Send");
+    JButton sendButton2 = new JButton("Borrar");
+    JButton sendButton3 = new JButton("Desconectar");
+    JPanel mainPanel = new JPanel();
+        
     public void go()
     {     
-        JPanel mainPanel = new JPanel();
         incoming = new JTextArea(15, 50);
         incoming.setLineWrap(true);
         incoming.setWrapStyleWord(true);
@@ -38,47 +42,22 @@ public class SimpleChatClient
         qScroller.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
         qScroller.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
         outgoing = new JTextField(20);
-        JButton sendButton = new JButton("Send");
-        JButton sendButton2 = new JButton("Borrar");
-        JButton sendButton3 = new JButton("Desconectar");
+        
+
+        sendButton4.addActionListener(new SendButtonListener4());
         sendButton3.addActionListener(new SendButtonListener3());
         sendButton2.addActionListener(new SendButtonListener2());
         sendButton.addActionListener(new SendButtonListener());
+        
         mainPanel.add(qScroller);
-        mainPanel.add(outgoing);
-        mainPanel.add(sendButton);
-        mainPanel.add(sendButton2);
-        mainPanel.add(sendButton3);
-        mainPanel.add(nombresclientes);
-        frame.getContentPane().add(BorderLayout.CENTER, mainPanel);
-        setUpNetworking();
+        mainPanel.add(sendButton4);
 
-        Thread readerThread = new Thread(new IncomingReader());
-        readerThread.start();
+        frame.getContentPane().add(BorderLayout.CENTER, mainPanel);
+        nick = JOptionPane.showInputDialog("Nickname");  
 
         frame.setSize(650, 500);
         frame.setVisible(true);
 
-    }
-
-    private void setUpNetworking()
-    {
-        try {
-            nick = JOptionPane.showInputDialog("Nickname");  
-            sock = new Socket("140.148.140.9", 5000);
-            InputStreamReader streamReader = new InputStreamReader(sock.getInputStream());
-            reader = new BufferedReader(streamReader);
-            writer = new PrintWriter(sock.getOutputStream());
-            System.out.println("networking established");
-            nombresarray.add(nick);
-            for(String nom : nombresarray){
-                nombresclientes.append(nom + "\n");
-            }
-        }
-        catch(IOException ex)
-        {
-            ex.printStackTrace();
-        }
     }
 
     public class SendButtonListener implements ActionListener
@@ -132,7 +111,7 @@ public class SimpleChatClient
                 for(String nom : nombresarray){
                     nombresclientes.append(nom + "\n");
                 }
-                //System.exit(0);
+                System.exit(0);
             }
             
             catch (Exception ex) {
@@ -142,6 +121,33 @@ public class SimpleChatClient
         
     }
 
+    public class SendButtonListener4 implements ActionListener
+    {
+        public void actionPerformed(ActionEvent ev) {
+            try {
+                mainPanel.add(outgoing);
+                mainPanel.add(sendButton);
+                mainPanel.add(sendButton2);
+                mainPanel.add(sendButton3);
+                mainPanel.add(nombresclientes);
+                sock = new Socket("192.168.1.70", 5000);
+                InputStreamReader streamReader = new InputStreamReader(sock.getInputStream());
+                reader = new BufferedReader(streamReader);
+                writer = new PrintWriter(sock.getOutputStream());
+                System.out.println("networking established");
+                nombresarray.add(nick);
+                for(String nom : nombresarray){
+                    nombresclientes.append(nom + "\n");
+                }
+                Thread readerThread = new Thread(new IncomingReader());
+                readerThread.start();
+                sendButton4.setVisible(false);
+            }
+            catch (Exception ex) {
+                ex.printStackTrace();
+            }                     
+        }
+    }
 
     public static void main(String[] args)
     {
